@@ -13,10 +13,10 @@
 
 ### 2. Backend в Serverless Containers с YDB
 ✅ Реализовано:
-- `backend/server.js` - Node.js сервер
+- `backend/server.py` - Python сервер
 - `backend/Dockerfile` - Docker образ для контейнера
-- `backend/package.json` - зависимости (ydb-sdk)
-- В UI видно **BACKEND_VERSION** (константа в server.js = v1.0.0)
+- `backend/requirements.txt` - зависимости (Flask, ydb)
+- В UI видно **BACKEND_VERSION** (константа в server.py = v1.0.0)
 - В UI видно **instanceId** (hostname контейнера)
 
 ### 3. API endpoints
@@ -95,11 +95,11 @@ y-cloud/
 │   └── app.js             # JS приложение
 ├── backend/               # Serverless Container
 │   ├── Dockerfile         # Docker образ
-│   ├── package.json       # Зависимости
-│   └── server.js          # API сервер с BACKEND_VERSION + instanceId
+│   ├── requirements.txt   # Зависимости
+│   └── server.py          # API сервер с BACKEND_VERSION + instanceId
 ├── function/              # Cloud Function
-│   ├── index.js           # Handler /api/ping-fn
-│   └── package.json       # Метаданные
+│   ├── index.py           # Handler /api/ping-fn
+│   └── requirements.txt   # Зависимости
 ├── scripts/               # Скрипты развертывания
 │   ├── ydb-init.sh        # Инициализация YDB (bash)
 │   ├── ydb-init.ps1       # Инициализация YDB (PowerShell)
@@ -120,10 +120,10 @@ y-cloud/
 ## Технический стек
 
 - **Frontend**: Vanilla HTML/CSS/JavaScript
-- **Backend**: Node.js 18
+- **Backend**: Python 3.11 (Flask)
 - **Database**: YDB Serverless
-- **Container Runtime**: Node.js 18 Alpine
-- **Function Runtime**: Node.js 18
+- **Container Runtime**: Python 3.11 Slim
+- **Function Runtime**: Python 3.11
 - **Gateway**: Yandex API Gateway (OpenAPI 3.0)
 - **Storage**: Yandex Object Storage
 - **Registry**: Yandex Container Registry

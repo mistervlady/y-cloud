@@ -18,12 +18,12 @@ if (-not $SERVICE_ACCOUNT_ID) {
 
 Write-Host "Creating function archive..."
 Set-Location "$PROJECT_ROOT\function"
-Compress-Archive -Path index.js,package.json -DestinationPath function.zip -Force
+Compress-Archive -Path index.py,requirements.txt -DestinationPath function.zip -Force
 
 Write-Host "Updating Cloud Function..."
 yc serverless function version create `
     --function-name $FUNCTION_NAME `
-    --runtime nodejs18 `
+    --runtime python311 `
     --entrypoint index.handler `
     --memory 128m `
     --execution-timeout 3s `

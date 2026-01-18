@@ -1,7 +1,0 @@
-{
-  "name": "ping-function",
-  "version": "1.0.0",
-  "description": "Ping function for Yandex Cloud",
-  "main": "index.js",
-  "dependencies": {}
-}

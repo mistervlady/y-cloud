@@ -5,7 +5,7 @@ Serverless приложение "Гостевая книга" на базе Yand
 ## Архитектура
 
 - **Frontend**: Статические файлы (HTML, CSS, JS) в Object Storage
-- **Backend**: Serverless Container с Node.js для API
+- **Backend**: Serverless Container с Python для API
 - **Database**: YDB Serverless для хранения сообщений
 - **Function**: Cloud Function для endpoint /api/ping-fn
 - **API Gateway**: Единая точка входа (HTTPS) для всех запросов
@@ -18,13 +18,13 @@ Serverless приложение "Гостевая книга" на базе Yand
 │   ├── index.html     # Главная страница (показывает FRONT_VERSION)
 │   ├── style.css      # Стили
 │   └── app.js         # JavaScript приложение
-├── backend/           # Backend на Node.js
+├── backend/           # Backend на Python
 │   ├── Dockerfile     # Докер-образ для Serverless Container
-│   ├── package.json   # Зависимости
-│   └── server.js      # API сервер (показывает BACKEND_VERSION + instanceId)
+│   ├── requirements.txt   # Зависимости
+│   └── server.py      # API сервер (показывает BACKEND_VERSION + instanceId)
 ├── function/          # Cloud Function
-│   ├── index.js       # Handler функции
-│   └── package.json   # Зависимости
+│   ├── index.py       # Handler функции
+│   └── requirements.txt   # Зависимости
 ├── scripts/           # Скрипты для развертывания
 │   ├── ydb-init.sh    # Инициализация схемы YDB (bash)
 │   ├── ydb-init.ps1   # Инициализация схемы YDB (PowerShell)

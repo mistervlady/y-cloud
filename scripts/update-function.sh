@@ -20,12 +20,12 @@ fi
 
 echo "Creating function archive..."
 cd "$PROJECT_ROOT/function"
-zip -r function.zip index.js package.json
+zip -r function.zip index.py requirements.txt
 
 echo "Updating Cloud Function..."
 yc serverless function version create \
     --function-name ${FUNCTION_NAME} \
-    --runtime nodejs18 \
+    --runtime python311 \
     --entrypoint index.handler \
     --memory 128m \
     --execution-timeout 3s \

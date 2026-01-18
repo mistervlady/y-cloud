@@ -29,9 +29,9 @@ Features:
 **Location:** `backend/`
 
 Files:
-- `server.js` - Node.js HTTP server
+- `server.py` - Python HTTP server (Flask)
 - `Dockerfile` - Container image definition
-- `package.json` - Dependencies (ydb-sdk)
+- `requirements.txt` - Dependencies (Flask, ydb)
 
 Features:
 - ✅ **BACKEND_VERSION** constant (v1.0.0)
@@ -48,8 +48,8 @@ Features:
 **Location:** `function/`
 
 Files:
-- `index.js` - Function handler
-- `package.json` - Function metadata
+- `index.py` - Function handler
+- `requirements.txt` - Dependencies
 
 Features:
 - ✅ `/api/ping-fn` endpoint
@@ -189,7 +189,7 @@ Features:
 
 - **Total Files:** 23
 - **Directories:** 5
-- **Languages:** JavaScript, Bash, PowerShell, YAML, HTML, CSS
+- **Languages:** Python, JavaScript, Bash, PowerShell, YAML, HTML, CSS
 - **Lines of Code:** ~2,500+
 - **Documentation:** ~15,000 words
 
