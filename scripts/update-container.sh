@@ -4,6 +4,10 @@
 
 set -e
 
+# Get the script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
 CONTAINER_NAME=${CONTAINER_NAME:-"guestbook-backend"}
 REGISTRY_ID=${REGISTRY_ID}
 IMAGE_NAME=${IMAGE_NAME:-"guestbook-backend"}
@@ -18,7 +22,7 @@ if [ -z "$REGISTRY_ID" ] || [ -z "$SERVICE_ACCOUNT_ID" ]; then
 fi
 
 echo "Building Docker image..."
-cd ../backend
+cd "$PROJECT_ROOT/backend"
 docker build -t cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest .
 
 echo "Pushing image to Yandex Container Registry..."

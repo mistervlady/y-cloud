@@ -46,12 +46,23 @@ async function getMessages() {
             return resultSets[0].rows;
         });
         
-        return result.map(row => ({
-            id: row.id,
-            author: row.author,
-            message: row.message,
-            timestamp: new Date(row.timestamp).toISOString()
-        }));
+        return result.map(row => {
+            let timestamp = row.timestamp;
+            try {
+                // Ensure timestamp is in ISO format
+                timestamp = new Date(row.timestamp).toISOString();
+            } catch (e) {
+                console.error('Invalid timestamp format:', row.timestamp);
+                timestamp = new Date().toISOString();
+            }
+            
+            return {
+                id: row.id,
+                author: row.author,
+                message: row.message,
+                timestamp: timestamp
+            };
+        });
     } catch (error) {
         console.error('Failed to get messages:', error);
         return [];

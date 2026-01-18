@@ -5,6 +5,10 @@
 
 set -e
 
+# Get the script directory and project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
 echo "=== Yandex Cloud Guestbook Quick Deploy ==="
 echo ""
 
@@ -51,9 +55,7 @@ echo ""
 echo "Step 3: Initializing YDB schema..."
 export YDB_ENDPOINT
 export YDB_DATABASE
-cd scripts
-./ydb-init.sh || echo "  Schema already initialized"
-cd ..
+bash "$SCRIPT_DIR/ydb-init.sh" || echo "  Schema already initialized"
 echo ""
 
 # Create Container Registry
@@ -73,11 +75,10 @@ echo ""
 
 # Upload frontend files
 echo "Step 6: Uploading frontend files..."
-cd frontend
+cd "$PROJECT_ROOT/frontend"
 yc storage s3api put-object --bucket $BUCKET_NAME --key index.html --body index.html
 yc storage s3api put-object --bucket $BUCKET_NAME --key style.css --body style.css --content-type text/css
 yc storage s3api put-object --bucket $BUCKET_NAME --key app.js --body app.js --content-type application/javascript
-cd ..
 echo "  ✓ Frontend files uploaded"
 echo ""
 
@@ -87,9 +88,7 @@ yc serverless container create --name guestbook-backend --folder-id $FOLDER_ID 2
 export REGISTRY_ID
 export SERVICE_ACCOUNT_ID=$SA_ID
 export CONTAINER_NAME="guestbook-backend"
-cd scripts
-./update-container.sh
-cd ..
+bash "$SCRIPT_DIR/update-container.sh"
 CONTAINER_ID=$(yc serverless container get guestbook-backend --folder-id $FOLDER_ID --format json | jq -r .id)
 echo "  Container ID: $CONTAINER_ID"
 echo ""
@@ -97,15 +96,14 @@ echo ""
 # Create and deploy Cloud Function
 echo "Step 8: Creating Cloud Function..."
 yc serverless function create --name ping-function --folder-id $FOLDER_ID 2>/dev/null || echo "  Function already exists"
-cd scripts
-./update-function.sh
-cd ..
+bash "$SCRIPT_DIR/update-function.sh"
 FUNCTION_ID=$(yc serverless function get ping-function --folder-id $FOLDER_ID --format json | jq -r .id)
 echo "  Function ID: $FUNCTION_ID"
 echo ""
 
 # Create API Gateway
 echo "Step 9: Creating API Gateway..."
+cd "$PROJECT_ROOT"
 cp api-gateway.yaml api-gateway-deploy.yaml
 sed -i "s/\${BUCKET_NAME}/$BUCKET_NAME/g" api-gateway-deploy.yaml
 sed -i "s/\${CONTAINER_ID}/$CONTAINER_ID/g" api-gateway-deploy.yaml
@@ -120,7 +118,7 @@ echo "  ✓ API Gateway created"
 echo ""
 
 # Save configuration
-cat > .env.local <<EOF
+cat > "$PROJECT_ROOT/.env.local" <<EOF
 # Auto-generated configuration from quick-deploy
 YC_FOLDER_ID=$FOLDER_ID
 SERVICE_ACCOUNT_ID=$SA_ID
