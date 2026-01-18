@@ -106,11 +106,11 @@ echo "Step 9: Creating API Gateway..."
 cd "$PROJECT_ROOT"
 cp api-gateway.yaml api-gateway-deploy.yaml
 
-# Escape special characters and perform substitution
-BUCKET_NAME_ESC=$(printf '%s\n' "$BUCKET_NAME" | sed 's/[[\.*^$/]/\\&/g')
-CONTAINER_ID_ESC=$(printf '%s\n' "$CONTAINER_ID" | sed 's/[[\.*^$/]/\\&/g')
-FUNCTION_ID_ESC=$(printf '%s\n' "$FUNCTION_ID" | sed 's/[[\.*^$/]/\\&/g')
-SA_ID_ESC=$(printf '%s\n' "$SA_ID" | sed 's/[[\.*^$/]/\\&/g')
+# Escape special characters for sed (/, &, \, and newlines)
+BUCKET_NAME_ESC=$(printf '%s\n' "$BUCKET_NAME" | sed 's/[\/&]/\\&/g')
+CONTAINER_ID_ESC=$(printf '%s\n' "$CONTAINER_ID" | sed 's/[\/&]/\\&/g')
+FUNCTION_ID_ESC=$(printf '%s\n' "$FUNCTION_ID" | sed 's/[\/&]/\\&/g')
+SA_ID_ESC=$(printf '%s\n' "$SA_ID" | sed 's/[\/&]/\\&/g')
 
 sed -i "s/\${BUCKET_NAME}/$BUCKET_NAME_ESC/g" api-gateway-deploy.yaml
 sed -i "s/\${CONTAINER_ID}/$CONTAINER_ID_ESC/g" api-gateway-deploy.yaml
