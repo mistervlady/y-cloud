@@ -2,6 +2,10 @@
 
 $ErrorActionPreference = "Stop"
 
+# Get the script directory and project root
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PROJECT_ROOT = Split-Path -Parent $SCRIPT_DIR
+
 $FUNCTION_NAME = if ($env:FUNCTION_NAME) { $env:FUNCTION_NAME } else { "ping-function" }
 $SERVICE_ACCOUNT_ID = $env:SERVICE_ACCOUNT_ID
 
@@ -13,7 +17,7 @@ if (-not $SERVICE_ACCOUNT_ID) {
 }
 
 Write-Host "Creating function archive..."
-Set-Location ..\function
+Set-Location "$PROJECT_ROOT\function"
 Compress-Archive -Path index.js,package.json -DestinationPath function.zip -Force
 
 Write-Host "Updating Cloud Function..."

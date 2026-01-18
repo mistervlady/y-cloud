@@ -47,7 +47,7 @@ async function getMessages() {
         });
         
         return result.map(row => {
-            let timestamp = row.timestamp;
+            let timestamp;
             try {
                 // Ensure timestamp is in ISO format
                 timestamp = new Date(row.timestamp).toISOString();

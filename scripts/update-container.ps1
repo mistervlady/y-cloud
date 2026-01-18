@@ -2,6 +2,10 @@
 
 $ErrorActionPreference = "Stop"
 
+# Get the script directory and project root
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PROJECT_ROOT = Split-Path -Parent $SCRIPT_DIR
+
 $CONTAINER_NAME = if ($env:CONTAINER_NAME) { $env:CONTAINER_NAME } else { "guestbook-backend" }
 $REGISTRY_ID = $env:REGISTRY_ID
 $IMAGE_NAME = if ($env:IMAGE_NAME) { $env:IMAGE_NAME } else { "guestbook-backend" }
@@ -16,7 +20,7 @@ if (-not $REGISTRY_ID -or -not $SERVICE_ACCOUNT_ID) {
 }
 
 Write-Host "Building Docker image..."
-Set-Location ..\backend
+Set-Location "$PROJECT_ROOT\backend"
 docker build -t "cr.yandex/$REGISTRY_ID/${IMAGE_NAME}:latest" .
 
 Write-Host "Pushing image to Yandex Container Registry..."
