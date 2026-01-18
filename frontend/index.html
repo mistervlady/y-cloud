@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гостевая книга</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Гостевая книга</h1>
+            <div class="version-info">
+                <span>Frontend: <strong id="front-version">v1.0.0</strong></span>
+                <span id="backend-info">Backend: <strong>Loading...</strong></span>
+            </div>
+        </header>
+
+        <div class="form-section">
+            <h2>Оставить сообщение</h2>
+            <form id="message-form">
+                <input type="text" id="author" placeholder="Ваше имя" required>
+                <textarea id="message" placeholder="Ваше сообщение" rows="4" required></textarea>
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+
+        <div class="messages-section">
+            <h2>Сообщения</h2>
+            <div id="messages-container">
+                <p class="loading">Загрузка сообщений...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

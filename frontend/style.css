@@ -1,0 +1,145 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    margin-bottom: 15px;
+    font-size: 2em;
+}
+
+.version-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.form-section, .messages-section {
+    padding: 30px;
+}
+
+.form-section h2, .messages-section h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#message-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#message-form input,
+#message-form textarea {
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+#message-form input:focus,
+#message-form textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+#message-form button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#message-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+#message-form button:active {
+    transform: translateY(0);
+}
+
+.message-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.message-author {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.message-text {
+    color: #333;
+    line-height: 1.6;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
+
+.error {
+    background: #fee;
+    color: #c33;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 4px solid #c33;
+}
+
+@media (max-width: 600px) {
+    .version-info {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .form-section, .messages-section {
+        padding: 20px;
+    }
+}

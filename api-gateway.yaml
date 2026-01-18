@@ -1,0 +1,88 @@
+openapi: 3.0.0
+info:
+  title: Guestbook API
+  version: 1.0.0
+  description: API Gateway for serverless guestbook application
+
+paths:
+  /:
+    get:
+      summary: Main page
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: ${BUCKET_NAME}
+        object: index.html
+        presigned_redirect: false
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: Main page
+
+  /style.css:
+    get:
+      summary: CSS styles
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: ${BUCKET_NAME}
+        object: style.css
+        presigned_redirect: false
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: CSS file
+
+  /app.js:
+    get:
+      summary: JavaScript application
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: ${BUCKET_NAME}
+        object: app.js
+        presigned_redirect: false
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: JavaScript file
+
+  /api/info:
+    get:
+      summary: Backend information
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: Backend info
+
+  /api/messages:
+    get:
+      summary: Get messages
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: List of messages
+
+    post:
+      summary: Post a new message
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '201':
+          description: Message created
+
+  /api/ping-fn:
+    get:
+      summary: Ping function
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: Pong response
