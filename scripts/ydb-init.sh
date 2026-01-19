@@ -1,31 +1,51 @@
 #!/bin/bash
+#
+# YDB schema initialization script (safe & idempotent)
+# Requires YDB_ENDPOINT and YDB_DATABASE to be set explicitly
+#
 
-# YDB initialization script
-# This script creates the messages table in YDB
+set -euo pipefail
 
-set -e
+echo "=== Initializing YDB schema ==="
+echo ""
 
-if [ -z "$YDB_ENDPOINT" ] || [ -z "$YDB_DATABASE" ]; then
-    echo "Error: YDB_ENDPOINT and YDB_DATABASE environment variables must be set"
-    echo "Example:"
-    echo "  export YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135"
-    echo "  export YDB_DATABASE=/ru-central1/b1g***********/etn***********"
+# ---- Required environment variables ----
+REQUIRED_VARS=(
+  YDB_ENDPOINT
+  YDB_DATABASE
+)
+
+echo "Checking required environment variables..."
+
+for VAR in "${REQUIRED_VARS[@]}"; do
+  if [[ -z "${!VAR:-}" ]]; then
+    echo "Environment variable $VAR is not set"
     exit 1
-fi
+  fi
+done
 
-echo "Initializing YDB schema..."
-echo "Endpoint: $YDB_ENDPOINT"
-echo "Database: $YDB_DATABASE"
+echo "✓ Required variables are set"
+echo ""
+echo "YDB Endpoint: $YDB_ENDPOINT"
+echo "YDB Database: $YDB_DATABASE"
+echo ""
 
-# Create messages table
-ydb -e "$YDB_ENDPOINT" -d "$YDB_DATABASE" yql -s "
-CREATE TABLE messages (
+# ---- Create table (idempotent) ----
+echo "Creating table 'messages' if it does not exist..."
+
+ydb \
+  -e "$YDB_ENDPOINT" \
+  -d "$YDB_DATABASE" \
+  yql -s "
+CREATE TABLE IF NOT EXISTS messages (
     id Utf8,
     author Utf8,
     message Utf8,
     timestamp Utf8,
     PRIMARY KEY (id)
-);"
+);
+"
 
-echo "Schema initialized successfully!"
-echo "Table 'messages' created with columns: id, author, message, timestamp"
+echo ""
+echo "YDB schema is ready"
+echo "Table 'messages' exists"
