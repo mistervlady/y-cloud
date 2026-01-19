@@ -30,12 +30,13 @@ docker push cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest
 
 echo "Updating Serverless Container..."
 yc serverless container revision deploy \
-    --container-name ${CONTAINER_NAME} \
-    --image cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest \
-    --cores 1 \
-    --memory 512MB \
-    --execution-timeout 30s \
-    --service-account-id ${SERVICE_ACCOUNT_ID} \
-    --environment YDB_ENDPOINT=${YDB_ENDPOINT},YDB_DATABASE=${YDB_DATABASE}
+  --container-name "$CONTAINER_NAME" \
+  --image "cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest" \
+  --cores 1 \
+  --memory 512MB \
+  --execution-timeout 30s \
+  --service-account-id "$SERVICE_ACCOUNT_ID" \
+  --environment "YDB_ENDPOINT=${YDB_ENDPOINT},YDB_DATABASE=${YDB_DATABASE}"
+
 
 echo "Container updated successfully!"
