@@ -1,150 +1,78 @@
 #!/bin/bash
+#
+# Safe Quick Deploy script for Guestbook application
+# Requires all environment variables to be set manually
+#
 
-# Quick deploy script for Guestbook application
-# This script automates the full deployment process
+set -euo pipefail
 
-set -e
-
-# Get the script directory and project root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-echo "=== Yandex Cloud Guestbook Quick Deploy ==="
+echo "=== Guestbook Safe Deploy ==="
 echo ""
 
-# Check prerequisites
-command -v yc >/dev/null 2>&1 || { echo "Error: yc CLI is required but not installed. Aborting." >&2; exit 1; }
-command -v docker >/dev/null 2>&1 || { echo "Error: docker is required but not installed. Aborting." >&2; exit 1; }
-command -v jq >/dev/null 2>&1 || { echo "Error: jq is required but not installed. Aborting." >&2; exit 1; }
+# ---- Required environment variables ----
+REQUIRED_VARS=(
+  YC_FOLDER_ID
+  SERVICE_ACCOUNT_ID
+  REGISTRY_ID
+  YDB_ENDPOINT
+  YDB_DATABASE
+  BUCKET_NAME
+  CONTAINER_NAME
+  FUNCTION_NAME
+  API_GATEWAY_NAME
+)
 
-echo "✓ Prerequisites check passed"
+echo "Checking required environment variables..."
+
+for VAR in "${REQUIRED_VARS[@]}"; do
+  if [[ -z "${!VAR:-}" ]]; then
+    echo "Environment variable $VAR is not set"
+    echo "Please export all required variables before running the script."
+    exit 1
+  fi
+done
+
+echo "All required environment variables are set"
 echo ""
 
-# Get folder ID
-FOLDER_ID=$(yc config get folder-id)
-echo "Using folder: $FOLDER_ID"
+# ---- Prerequisites ----
+command -v yc >/dev/null 2>&1 || { echo "yc CLI is required"; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "docker is required"; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo "jq is required"; exit 1; }
+
+echo "Prerequisites check passed"
 echo ""
 
-# Create service account
-echo "Step 1: Creating service account..."
-yc iam service-account create --name guestbook-sa --folder-id $FOLDER_ID 2>/dev/null || echo "  Service account already exists"
-SA_ID=$(yc iam service-account get guestbook-sa --folder-id $FOLDER_ID --format json | jq -r .id)
-echo "  Service Account ID: $SA_ID"
-
-# Assign roles
-echo "  Assigning roles..."
-yc resource-manager folder add-access-binding $FOLDER_ID --role serverless.containers.invoker --subject serviceAccount:$SA_ID 2>/dev/null || true
-yc resource-manager folder add-access-binding $FOLDER_ID --role serverless.functions.invoker --subject serviceAccount:$SA_ID 2>/dev/null || true
-yc resource-manager folder add-access-binding $FOLDER_ID --role ydb.editor --subject serviceAccount:$SA_ID 2>/dev/null || true
-yc resource-manager folder add-access-binding $FOLDER_ID --role storage.viewer --subject serviceAccount:$SA_ID 2>/dev/null || true
-yc resource-manager folder add-access-binding $FOLDER_ID --role container-registry.images.pusher --subject serviceAccount:$SA_ID 2>/dev/null || true
-echo ""
-
-# Create YDB
-echo "Step 2: Creating YDB database..."
-yc ydb database create guestbook-db --serverless --folder-id $FOLDER_ID 2>/dev/null || echo "  Database already exists"
-sleep 5
-YDB_INFO=$(yc ydb database get guestbook-db --folder-id $FOLDER_ID --format json)
-YDB_ENDPOINT=$(echo $YDB_INFO | jq -r .endpoint)
-YDB_DATABASE=$(echo $YDB_INFO | jq -r .path)
-echo "  YDB Endpoint: $YDB_ENDPOINT"
-echo "  YDB Database: $YDB_DATABASE"
-echo ""
-
-# Initialize YDB schema
-echo "Step 3: Initializing YDB schema..."
-export YDB_ENDPOINT
-export YDB_DATABASE
-bash "$SCRIPT_DIR/ydb-init.sh" || echo "  Schema already initialized"
-echo ""
-
-# Create Container Registry
-echo "Step 4: Creating Container Registry..."
-yc container registry create --name guestbook-registry --folder-id $FOLDER_ID 2>/dev/null || echo "  Registry already exists"
-REGISTRY_ID=$(yc container registry get guestbook-registry --folder-id $FOLDER_ID --format json | jq -r .id)
-echo "  Registry ID: $REGISTRY_ID"
+# ---- Configure Docker for YCR ----
+echo "Configuring Docker for Yandex Container Registry..."
 yc container registry configure-docker
 echo ""
 
-# Create Object Storage bucket
-echo "Step 5: Creating Object Storage bucket..."
-BUCKET_NAME="guestbook-frontend-$(date +%s)"
-yc storage bucket create --name $BUCKET_NAME --folder-id $FOLDER_ID
-echo "  Bucket: $BUCKET_NAME"
+# ---- Initialize YDB schema (idempotent) ----
+echo "Initializing YDB schema (if needed)..."
+export YDB_ENDPOINT
+export YDB_DATABASE
+bash "$SCRIPT_DIR/ydb-init.sh" || echo "Schema already exists"
 echo ""
 
-# Upload frontend files
-echo "Step 6: Uploading frontend files..."
-cd "$PROJECT_ROOT/frontend"
-yc storage s3api put-object --bucket $BUCKET_NAME --key index.html --body index.html
-yc storage s3api put-object --bucket $BUCKET_NAME --key style.css --body style.css --content-type text/css
-yc storage s3api put-object --bucket $BUCKET_NAME --key app.js --body app.js --content-type application/javascript
-echo "  ✓ Frontend files uploaded"
-echo ""
-
-# Create and deploy Serverless Container
-echo "Step 7: Creating Serverless Container..."
-yc serverless container create --name guestbook-backend --folder-id $FOLDER_ID 2>/dev/null || echo "  Container already exists"
+# ---- Deploy Serverless Container ----
+echo "Deploying Serverless Container..."
+export SERVICE_ACCOUNT_ID
 export REGISTRY_ID
-export SERVICE_ACCOUNT_ID=$SA_ID
-export CONTAINER_NAME="guestbook-backend"
+export CONTAINER_NAME
 bash "$SCRIPT_DIR/update-container.sh"
-CONTAINER_ID=$(yc serverless container get guestbook-backend --folder-id $FOLDER_ID --format json | jq -r .id)
-echo "  Container ID: $CONTAINER_ID"
+
+CONTAINER_ID=$(yc serverless container get "$CONTAINER_NAME" \
+  --folder-id "$YC_FOLDER_ID" \
+  --format json | jq -r .id)
+
+echo "Container deployed: $CONTAINER_ID"
 echo ""
 
-# Create and deploy Cloud Function
-echo "Step 8: Creating Cloud Function..."
-yc serverless function create --name ping-function --folder-id $FOLDER_ID 2>/dev/null || echo "  Function already exists"
-bash "$SCRIPT_DIR/update-function.sh"
-FUNCTION_ID=$(yc serverless function get ping-function --folder-id $FOLDER_ID --format json | jq -r .id)
-echo "  Function ID: $FUNCTION_ID"
-echo ""
-
-# Create API Gateway
-echo "Step 9: Creating API Gateway..."
-cd "$PROJECT_ROOT"
-cp api-gateway.yaml api-gateway-deploy.yaml
-
-# Escape special characters for sed (/, &, \, and newlines)
-BUCKET_NAME_ESC=$(printf '%s\n' "$BUCKET_NAME" | sed 's/[\/&]/\\&/g')
-CONTAINER_ID_ESC=$(printf '%s\n' "$CONTAINER_ID" | sed 's/[\/&]/\\&/g')
-FUNCTION_ID_ESC=$(printf '%s\n' "$FUNCTION_ID" | sed 's/[\/&]/\\&/g')
-SA_ID_ESC=$(printf '%s\n' "$SA_ID" | sed 's/[\/&]/\\&/g')
-
-sed -i "s/\${BUCKET_NAME}/$BUCKET_NAME_ESC/g" api-gateway-deploy.yaml
-sed -i "s/\${CONTAINER_ID}/$CONTAINER_ID_ESC/g" api-gateway-deploy.yaml
-sed -i "s/\${FUNCTION_ID}/$FUNCTION_ID_ESC/g" api-gateway-deploy.yaml
-sed -i "s/\${SERVICE_ACCOUNT_ID}/$SA_ID_ESC/g" api-gateway-deploy.yaml
-
-yc serverless api-gateway create --name guestbook-gateway --spec api-gateway-deploy.yaml --folder-id $FOLDER_ID 2>/dev/null || \
-yc serverless api-gateway update guestbook-gateway --spec api-gateway-deploy.yaml --folder-id $FOLDER_ID
-
-GATEWAY_URL=$(yc serverless api-gateway get guestbook-gateway --folder-id $FOLDER_ID --format json | jq -r .domain)
-echo "  ✓ API Gateway created"
-echo ""
-
-# Save configuration
-cat > "$PROJECT_ROOT/.env.local" <<EOF
-# Auto-generated configuration from quick-deploy
-YC_FOLDER_ID=$FOLDER_ID
-SERVICE_ACCOUNT_ID=$SA_ID
-REGISTRY_ID=$REGISTRY_ID
-YDB_ENDPOINT=$YDB_ENDPOINT
-YDB_DATABASE=$YDB_DATABASE
-BUCKET_NAME=$BUCKET_NAME
-CONTAINER_ID=$CONTAINER_ID
-CONTAINER_NAME=guestbook-backend
-FUNCTION_ID=$FUNCTION_ID
-FUNCTION_NAME=ping-function
-GATEWAY_URL=https://$GATEWAY_URL
-EOF
-
-echo "=== Deployment Complete! ==="
-echo ""
-echo "Application URL: https://$GATEWAY_URL"
-echo "Ping Function: https://$GATEWAY_URL/api/ping-fn"
-echo ""
-echo "Configuration saved to .env.local"
-echo ""
-echo "Open https://$GATEWAY_URL in your browser to use the guestbook!"
+# ---- Deploy Cloud Function ----
+echo "Deploying Cloud Function..."
+export FUNCTION_NAME
+bash "$SCRIPT_DIR/update-_

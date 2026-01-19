@@ -20,11 +20,11 @@
 │ Object Storage   │  │ Serverless       │  │ Cloud Function       │
 │                  │  │ Container        │  │                      │
 │ - index.html     │  │                  │  │ - /api/ping-fn       │
-│   (FRONT_VERSION)│  │ Node.js + YDB SDK│  │   (ping handler)     │
+│   (FRONT_VERSION)│  │ python + YDB SD  │  │   (ping handler)     │
 │ - style.css      │  │                  │  │ - Возвращает pong    │
 │ - app.js         │  │ Endpoints:       │  │   с metadata         │
 │                  │  │ - /api/info      │  │                      │
-│                  │  │   (BACKEND_      │  │ Runtime: nodejs18    │
+│                  │  │   (BACKEND_      │  │ Runtime: python      │
 │                  │  │    VERSION +     │  │                      │
 │                  │  │    instanceId)   │  │                      │
 │                  │  │ - /api/messages  │  │                      │

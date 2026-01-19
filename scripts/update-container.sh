@@ -1,41 +1,69 @@
 #!/bin/bash
+#
+# Update Serverless Container script (safe version)
+# All required variables must be provided via environment
+#
 
-# Update Serverless Container script
+set -euo pipefail
 
-set -e
-
-# Get the script directory
+# Resolve paths
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-CONTAINER_NAME=${CONTAINER_NAME:-"guestbook-backend"}
-REGISTRY_ID=${REGISTRY_ID}
-IMAGE_NAME=${IMAGE_NAME:-"guestbook-backend"}
-SERVICE_ACCOUNT_ID=${SERVICE_ACCOUNT_ID}
+echo "=== Updating Serverless Container ==="
+echo ""
 
-if [ -z "$REGISTRY_ID" ] || [ -z "$SERVICE_ACCOUNT_ID" ]; then
-    echo "Error: REGISTRY_ID and SERVICE_ACCOUNT_ID environment variables must be set"
-    echo "Example:"
-    echo "  export REGISTRY_ID=crp***********"
-    echo "  export SERVICE_ACCOUNT_ID=aje***********"
+# ---- Required environment variables ----
+REQUIRED_VARS=(
+  CONTAINER_NAME
+  REGISTRY_ID
+  IMAGE_NAME
+  SERVICE_ACCOUNT_ID
+  YDB_ENDPOINT
+  YDB_DATABASE
+)
+
+echo "Checking required environment variables..."
+
+for VAR in "${REQUIRED_VARS[@]}"; do
+  if [[ -z "${!VAR:-}" ]]; then
+    echo "Environment variable $VAR is not set"
     exit 1
-fi
+  fi
+done
 
+echo "All required variables are set"
+echo ""
+
+# ---- Build Docker image ----
 echo "Building Docker image..."
 cd "$PROJECT_ROOT/backend"
-docker build -t cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest .
 
-echo "Pushing image to Yandex Container Registry..."
-docker push cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest
+# Ensure buildx builder exists
+docker buildx create --use --name yc-builder >/dev/null 2>&1 || docker buildx use yc-builder
 
-echo "Updating Serverless Container..."
+echo "Building & pushing image to registry..."
+docker buildx build \
+  --platform linux/amd64 \
+  -t "cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest" \
+  --push \
+  .
+
+echo ""
+
+# ---- Deploy container revision ----
+echo "Deploying new container revision..."
+
 yc serverless container revision deploy \
-    --container-name ${CONTAINER_NAME} \
-    --image cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest \
-    --cores 1 \
-    --memory 512MB \
-    --execution-timeout 30s \
-    --service-account-id ${SERVICE_ACCOUNT_ID} \
-    --environment YDB_ENDPOINT=${YDB_ENDPOINT},YDB_DATABASE=${YDB_DATABASE}
+  --container-name "$CONTAINER_NAME" \
+  --image "cr.yandex/${REGISTRY_ID}/${IMAGE_NAME}:latest" \
+  --cores 1 \
+  --memory 512MB \
+  --execution-timeout 30s \
+  --service-account-id "$SERVICE_ACCOUNT_ID" \
+  --environment \
+    YDB_ENDPOINT="$YDB_ENDPOINT",\
+    YDB_DATABASE="$YDB_DATABASE"
 
-echo "Container updated successfully!"
+echo ""
+echo "Container updated successfully"

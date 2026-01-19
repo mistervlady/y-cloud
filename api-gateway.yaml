@@ -10,10 +10,10 @@ paths:
       summary: Main page
       x-yc-apigateway-integration:
         type: object_storage
-        bucket: ${BUCKET_NAME}
+        bucket: guestbook-frontend-2002
         object: index.html
         presigned_redirect: false
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '200':
           description: Main page
@@ -23,10 +23,10 @@ paths:
       summary: CSS styles
       x-yc-apigateway-integration:
         type: object_storage
-        bucket: ${BUCKET_NAME}
+        bucket: guestbook-frontend-2002
         object: style.css
         presigned_redirect: false
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '200':
           description: CSS file
@@ -36,10 +36,10 @@ paths:
       summary: JavaScript application
       x-yc-apigateway-integration:
         type: object_storage
-        bucket: ${BUCKET_NAME}
+        bucket: guestbook-frontend-2002
         object: app.js
         presigned_redirect: false
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '200':
           description: JavaScript file
@@ -49,8 +49,8 @@ paths:
       summary: Backend information
       x-yc-apigateway-integration:
         type: serverless_containers
-        container_id: ${CONTAINER_ID}
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        container_id: bba1jo5kenut1jgu5asb
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '200':
           description: Backend info
@@ -60,8 +60,8 @@ paths:
       summary: Get messages
       x-yc-apigateway-integration:
         type: serverless_containers
-        container_id: ${CONTAINER_ID}
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        container_id: bba1jo5kenut1jgu5asb
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '200':
           description: List of messages
@@ -70,8 +70,8 @@ paths:
       summary: Post a new message
       x-yc-apigateway-integration:
         type: serverless_containers
-        container_id: ${CONTAINER_ID}
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        container_id: bba1jo5kenut1jgu5asb
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '201':
           description: Message created
@@ -81,8 +81,8 @@ paths:
       summary: Ping function
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        function_id: d4e9h14bedbkbfctq94j
+        service_account_id: aje8tueemibgatuv98bd
       responses:
         '200':
           description: Pong response
